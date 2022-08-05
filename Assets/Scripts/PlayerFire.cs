@@ -55,6 +55,13 @@ public class PlayerFire : MonoBehaviour
             // 2. 파편효과 재생하기
             bulletPS.Stop();
             bulletPS.Play();
+
+            // 부딪힌 녀석이 Enemy 라면 피격 이벤트 호출하자
+            Enemy enemy = hitInfo.collider.GetComponent<Enemy>();
+            if(enemy)
+            {
+                enemy.OnDamageProcess(ray.direction);
+            }
         }
     }
 
