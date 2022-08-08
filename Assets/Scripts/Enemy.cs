@@ -5,6 +5,8 @@ using UnityEngine;
 
 // 적이 유한한 상태를 갖도록 하고 싶다.
 // 필요속성 : 상태정의
+// 애니메이션의 상태를 Move 로 전환하고 싶다.
+// 필요속성 : Animator
 public class Enemy : MonoBehaviour
 {
     #region Enemy 속성정의
@@ -33,10 +35,13 @@ public class Enemy : MonoBehaviour
     CharacterController cc;
     #endregion
 
+    // 필요속성 : Animator
+    Animator anim;
     // Start is called before the first frame update
     void Start()
     {
         cc = GetComponent<CharacterController>();
+        anim = GetComponentInChildren<Animator>();
     }
 
     // Update is called once per frame
@@ -76,6 +81,8 @@ public class Enemy : MonoBehaviour
             // 3. 상태를 이동으로 전환
             m_State = EnemyState.Move;
             currentTime = 0;
+            // 애니메이션의 상태를 Move 로 전환하고 싶다.
+            anim.SetTrigger("Move");
         }
     }
 
@@ -101,6 +108,7 @@ public class Enemy : MonoBehaviour
         if(distance < attackRange)
         {
             m_State = EnemyState.Attack;
+            currentTime = attackDelayTime;
         }
     }
 
@@ -121,12 +129,14 @@ public class Enemy : MonoBehaviour
         {
             currentTime = 0;
             print("attack!!!");
+            anim.SetTrigger("Attack");
         }
         // 타겟이 공격범위를 벗어나면 상태를 이동으로 전환하고 싶다.
         float distance = Vector3.Distance(target.position, transform.position);
         if(distance > attackRange)
         {
             m_State = EnemyState.Move;
+            anim.SetTrigger("Move");
         }
     }
 
