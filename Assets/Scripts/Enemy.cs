@@ -48,7 +48,7 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         print("state : " + m_State);
-        switch(m_State)
+        switch (m_State)
         {
             case EnemyState.Idle:
                 Idle();
@@ -155,10 +155,13 @@ public class Enemy : MonoBehaviour
             m_State = EnemyState.Die;
             // 충돌체 꺼버리자
             cc.enabled = false;
+            anim.SetTrigger("Die");
         }
         else
         {
             m_State = EnemyState.Damage;
+            // 애니메이션 상태 전환
+            anim.SetTrigger("Damage");
             //transform.position += shootDirection * damageSpeed;
             //cc.Move(shootDirection * damageSpeed);
             shootDirection.y = 0;
