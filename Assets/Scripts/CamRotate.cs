@@ -12,6 +12,9 @@ public class CamRotate : MonoBehaviour
     float mx;
     float my;
 
+    public bool bUseHorizontal = true;
+    public bool bUseVertical = true;
+
     void Start()
     {
         // 시작할 때 eulerangles 의 값을 mx, my 에 할당
@@ -27,8 +30,11 @@ public class CamRotate : MonoBehaviour
         float h = Input.GetAxis("Mouse X");
         float v = Input.GetAxis("Mouse Y");
         // 2. 방향이 필요
-        mx += h * rotSpeed * Time.deltaTime;
-        my += v * rotSpeed * Time.deltaTime;
+        if(bUseHorizontal)
+            mx += h * rotSpeed * Time.deltaTime;
+
+        if(bUseVertical)
+            my += v * rotSpeed * Time.deltaTime;
         // -60 ~ 60 각도 제한을 주자
         //my = Mathf.Clamp(my, -60, 60);
         // 3. 회전시키고 싶다.

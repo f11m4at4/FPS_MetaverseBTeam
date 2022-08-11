@@ -7,6 +7,7 @@ using UnityEngine;
 // 필요속성 : 상태정의
 // 애니메이션의 상태를 Move 로 전환하고 싶다.
 // 필요속성 : Animator
+//죽는 애니메이션이 끝나고 나면 바닥으로 사라지도록 하고싶다.
 public class Enemy : MonoBehaviour
 {
     #region Enemy 속성정의
@@ -60,7 +61,7 @@ public class Enemy : MonoBehaviour
                 Attack();
                 break;
             case EnemyState.Damage:
-                Damage();
+                //Damage();
                 break;
             case EnemyState.Die:
                 Die();
@@ -147,6 +148,7 @@ public class Enemy : MonoBehaviour
     Vector3 knockBackPos;
     public void OnDamageProcess(Vector3 shootDirection)
     {
+        StopAllCoroutines();
         // 3 대 맞으면
         hp--;
         if (hp <= 0)
@@ -156,6 +158,7 @@ public class Enemy : MonoBehaviour
             // 충돌체 꺼버리자
             cc.enabled = false;
             anim.SetTrigger("Die");
+
         }
         else
         {
@@ -166,6 +169,7 @@ public class Enemy : MonoBehaviour
             //cc.Move(shootDirection * damageSpeed);
             shootDirection.y = 0;
             knockBackPos = transform.position + shootDirection * damageSpeed;
+            StartCoroutine(Damage());
         }
         currentTime = 0;
     }
@@ -173,27 +177,49 @@ public class Enemy : MonoBehaviour
     // 일정시간 기다렸다가 상태를 Idle 로 전환하고 싶다.
     // 필요속성 : 피격대기시간
     public float damageDelayTime = 2;
-    private void Damage()
+    private IEnumerator Damage()
     {
-        transform.position = Vector3.Lerp(transform.position, knockBackPos, 15 * Time.deltaTime);
-
-        currentTime += Time.deltaTime;
-        if(currentTime > damageDelayTime)
+        float damageEndCheckTime = 0;
+        // 원하는 위치로 계속 이동하고 싶다.
+        // 시간이 2초가 아직 안됐다면
+        while (damageEndCheckTime < 2)
         {
-            currentTime = 0;
-            m_State = EnemyState.Idle;
+            // 시간이 흘러야 한다.
+            damageEndCheckTime += Time.deltaTime;
+
+            transform.position = Vector3.Lerp(transform.position, knockBackPos, 15 * Time.deltaTime);
+
+            // 코루틴 종료시키기
+            //yield break;
+            // delta Time 만큼 기다리기
+            yield return null;
         }
+        transform.position = knockBackPos;
+
+        m_State = EnemyState.Idle;
+        //currentTime += Time.deltaTime;
+        //if (currentTime > damageDelayTime)
+        //{
+        //    currentTime = 0;
+        //    m_State = EnemyState.Idle;
+        //}
     }
 
     public float dieSpeed = 0.5f;
     private void Die()
     {
-        // 아래로 사라지도록 하자.
-        transform.position += Vector3.down * dieSpeed * Time.deltaTime;
-        // 완전히 사라지면 제거 -2
-        if(transform.position.y < -3)
+        //죽는 애니메이션이 끝나고 나면 바닥으로 사라지도록 하고싶다.
+        currentTime += Time.deltaTime;
+        if(currentTime > 2)
         {
-            Destroy(gameObject);
+            // 아래로 사라지도록 하자.
+            transform.position += Vector3.down * dieSpeed * Time.deltaTime;
+            // 완전히 사라지면 제거 -2
+            if (transform.position.y < -3)
+            {
+                Destroy(gameObject);
+            }
         }
+        
     }
 }
