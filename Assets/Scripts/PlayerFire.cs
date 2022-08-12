@@ -14,10 +14,14 @@ public class PlayerFire : MonoBehaviour
     public Transform bulletImpact;
     ParticleSystem bulletPS;
     AudioSource bulletAudio;
+
+    Animator anim;
     void Start()
     {
         bulletPS = bulletImpact.GetComponent<ParticleSystem>();
         bulletAudio = bulletImpact.GetComponent<AudioSource>();
+
+        anim = GetComponentInChildren<Animator>();
     }
 
     // Update is called once per frame
@@ -27,6 +31,9 @@ public class PlayerFire : MonoBehaviour
         // 1. 사용자가 발사버튼을 눌렀으니까
         if (Input.GetButtonDown("Fire1"))
         {
+            //anim.SetTrigger("Attack");
+            //anim.Play("Attack");
+            anim.CrossFade("Attack", 1, 1, 0.1f);
             bulletAudio.Stop();
             bulletAudio.Play();
             ShootRay();

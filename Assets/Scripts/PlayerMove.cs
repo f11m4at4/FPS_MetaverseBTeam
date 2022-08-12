@@ -25,9 +25,12 @@ public class PlayerMove : MonoBehaviour
     int jumpCount = 0;
     public int jumpCountMax = 2;
 
+    Animator anim;
     void Start()
     {
         cc = GetComponent<CharacterController>();
+        anim = GetComponentInChildren<Animator>();
+
     }
 
     // Update is called once per frame
@@ -37,11 +40,23 @@ public class PlayerMove : MonoBehaviour
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
+        anim.SetFloat("Direction", h);
+        anim.SetFloat("Speed", v);
+
         Vector3 dir = new Vector3(h, 0, v);
         dir = Camera.main.transform.TransformDirection(dir);
         // v = v0 + at
         yVelocity += gravity * Time.deltaTime;
 
+        // 바닥에 10 cm 떨어져 있다면 점프로 판단하자
+        Ray ray = new Ray(transform.position, Vector3.down);
+        RaycastHit hitInfo;
+        int layer = 1 << gameObject.layer;
+        if(Physics.Raycast(ray, out hitInfo, 0.1f, ~layer)==false)
+        {
+            // 공중에 있다.
+            anim.SetBool("IsInAir", true);
+        }
         // 만약 바닥에 닿아 있다면
         if (cc.collisionFlags == CollisionFlags.Below)
         {
@@ -49,6 +64,7 @@ public class PlayerMove : MonoBehaviour
             yVelocity = 0;
             jumpCount = 0;
             //isJumping = false;
+            anim.SetBool("IsInAir", false);
         }
 
         // 사용자가 점프버튼을 누르면 점프하고 싶다.
@@ -58,6 +74,7 @@ public class PlayerMove : MonoBehaviour
             yVelocity = jumpPower;
             jumpCount++;
             //isJumping = true;
+            anim.SetBool("IsInAir", true);
         }
 
         dir.y = yVelocity;
