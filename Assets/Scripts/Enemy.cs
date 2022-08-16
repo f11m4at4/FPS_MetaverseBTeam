@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 // 적이 유한한 상태를 갖도록 하고 싶다.
 // 필요속성 : 상태정의
@@ -38,11 +39,15 @@ public class Enemy : MonoBehaviour
 
     // 필요속성 : Animator
     Animator anim;
+
+    // Path Finding 을 위한 네비게이션
+    NavMeshAgent agent;
     // Start is called before the first frame update
     void Start()
     {
         cc = GetComponent<CharacterController>();
         anim = GetComponentInChildren<Animator>();
+        agent = GetComponent<NavMeshAgent>();
     }
 
     // Update is called once per frame
@@ -84,6 +89,7 @@ public class Enemy : MonoBehaviour
             currentTime = 0;
             // 애니메이션의 상태를 Move 로 전환하고 싶다.
             anim.SetTrigger("Move");
+            agent.enabled = true;
         }
     }
 
@@ -101,15 +107,19 @@ public class Enemy : MonoBehaviour
         float distance = dir.magnitude;
         dir.Normalize();
         dir.y = 0;
+
+        agent.destination = target.position;
+        
         // 타겟쪽으로 회전하고 싶다.
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), 5 * Time.deltaTime);
+        //transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), 5 * Time.deltaTime);
         // 2. 이동하고 싶다.
-        cc.SimpleMove(dir * speed);
+        //cc.SimpleMove(dir * speed);
         // 공격범위에 타겟이 들어오면 상태를 공격으로 전환하고 싶다.
         if(distance < attackRange)
         {
             m_State = EnemyState.Attack;
             currentTime = attackDelayTime;
+            agent.enabled = false;
         }
     }
 
@@ -125,6 +135,11 @@ public class Enemy : MonoBehaviour
     public float attackDelayTime = 2;
     private void Attack()
     {
+        Vector3 dir = target.position - transform.position;
+        dir.Normalize();
+        dir.y = 0;
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
+
         currentTime += Time.deltaTime;
         if(currentTime > attackDelayTime)
         {
@@ -138,6 +153,7 @@ public class Enemy : MonoBehaviour
         {
             m_State = EnemyState.Move;
             anim.SetTrigger("Move");
+            agent.enabled = true;
         }
     }
 
