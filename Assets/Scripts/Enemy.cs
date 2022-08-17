@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -98,6 +97,12 @@ public class Enemy : MonoBehaviour
     // 공격범위에 타겟이 들어오면 상태를 공격으로 전환하고 싶다.
     // 필요속성 : 공격범위
     public float attackRange = 2;
+
+    // 타겟이 이동가능한 범위 밖에 있으면 패트롤 하고 싶다.
+    // 필요속성 : 이동가능한 범위
+    public float moveToTargetRange = 5;
+    Vector3 randPos;
+    bool canMove = false;
     private void Move()
     {
         // 타겟쪽으로 이동하고 싶다.
@@ -108,8 +113,45 @@ public class Enemy : MonoBehaviour
         dir.Normalize();
         dir.y = 0;
 
-        agent.destination = target.position;
+        // 내가 향하는 벡터
+        Debug.DrawLine(transform.position, transform.position + transform.forward * 5, Color.red);
+        // 타겟쪽으로 향하는 벡터
+        Debug.DrawLine(transform.position, transform.position + dir * 5, Color.yellow);
+
+        float dot = Vector3.Dot(transform.forward, dir);
         
+        // 이동범위 안에 있다면 그리고 시야범위 안에 있을 때
+        if (true)//distance < moveToTargetRange && dot > 0)
+        {
+            // -> 타겟쪽으로 이동
+            agent.destination = target.position;
+        }
+        // 그렇지 않으면
+        // 타겟이 이동가능한 범위 밖에 있으면 패트롤 하고 싶다.
+        else
+        {
+            // 패트롤 하고 싶다.
+
+            // 만약 아직 이동할 곳을 못찾았다면
+            if (canMove == false)
+            {
+                // -> 이동할 곳을 찾자.
+                canMove = GetRandomPosition(transform.position, out randPos, 10);
+            }
+            // 만약 찾았다면
+            // -> 그렇지 않다면
+            else
+            {
+                // 이동
+                agent.destination = randPos;
+                // 만약 목적지에 거의 도착했다면
+                if (Vector3.Distance(randPos, transform.position) < 0.1f)
+                {
+                    // 다시 찾아야 한다고 알려주기
+                    canMove = false;
+                }
+            }
+        }
         // 타겟쪽으로 회전하고 싶다.
         //transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), 5 * Time.deltaTime);
         // 2. 이동하고 싶다.
@@ -121,6 +163,21 @@ public class Enemy : MonoBehaviour
             currentTime = attackDelayTime;
             agent.enabled = false;
         }
+    }
+
+    private bool GetRandomPosition(Vector3 position, out Vector3 randPos, float range = 3)
+    {
+        // 랜덤한 위치찾기
+        Vector3 center = Random.insideUnitSphere * range;
+        center.y = 0;
+        center += position;
+        NavMeshHit hitInfo;
+        // 랜덤 위치로부터 움직일 수 있는지 여부 조사
+        bool result = NavMesh.SamplePosition(center, out hitInfo, range, 1);
+        // randPos 에 위치 할당
+        randPos = hitInfo.position;
+        // 가능 여부 반환
+        return result;
     }
 
     private void OnDrawGizmos()
@@ -164,6 +221,8 @@ public class Enemy : MonoBehaviour
     Vector3 knockBackPos;
     public void OnDamageProcess(Vector3 shootDirection)
     {
+        agent.enabled = false;
+
         StopAllCoroutines();
         // 3 대 맞으면
         hp--;
