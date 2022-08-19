@@ -41,7 +41,7 @@ public class CameraShake : MonoBehaviour
             case CameraShakeType.Sine:
                 return new CS_Sine();
             case CameraShakeType.Animation:
-                break;
+                return new CS_Animation();
         }
         return null;
     }
@@ -62,6 +62,10 @@ public class CameraShake : MonoBehaviour
         {
             StopAllCoroutines();
             StartCoroutine(Play());
+        }
+        else
+        {
+            cameraShake.Play(targetCamera, info);
         }
     }
 
